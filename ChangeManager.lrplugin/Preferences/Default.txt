@@ -1,0 +1,786 @@
+--[[
+        Plugin configuration file.
+--]]
+
+-- declare return table
+local _r = { version=1 }
+
+
+
+local disp = app:getDisplayDimensions() -- presumably always returns valid dimensions.
+
+
+
+--[[
+        *** Instructions:
+        
+        Set true if you want to rely on the log file for info settings comparison info, and bypass the UI altogether.
+        Idea: Use in conjunction with "always show log file" (hint: reset warning dialogs).
+        
+        Examples:
+        
+            _r.bypassCompareDisp = false -- normal display of comparison results.
+            _r.bypassCompareDisp = true -- there will be no display of comparison results, but they will be logged for your inspection.
+--]]
+_r.bypassCompareDisp = false
+
+
+
+--[[
+        This is the amount of time the dialog box will be dismissed to allow adequate time for saving metadata manually before reprompting.
+    
+        *** Instructions:
+        
+        Reduce this delay if too much, increase if not enough,.
+--]]
+_r.delayForManualMetadataSaveBox = 3
+
+
+
+--[[
+        Key character code for saving metadata on your system.
+        
+        On English keyboards it's Ctrl-s, but yours may be different.
+        
+        This feature is used when auto-saving metadata during lockage.
+        
+        Examples:
+        
+        _r.saveMetadataKeyChar = nil -- English compatible keyboard, use default ('s').
+        _r.saveMetadataKeyChar = 't' -- "foreign" keyboard, use Ctrl/Cmd-t to save metadata.
+--]]
+_r.saveMetadataKeyChar = 's'
+
+
+
+--[[
+        Keystrokes for reading metadata on your system, if applicable.
+        
+        On English Windows keyboards it's Alt-mr (in library module), but yours may be different.
+        
+        This feature is used when auto-reading metadata during reversion.
+        
+        Examples:
+        
+        _r.readMetadataKeySeq = nil -- English compatible keyboard, use default ('mr').
+        _r.readMetadataKeySeq = 'nt' -- "foreign" keyboard, use Alt-nt to read metadata in Library module.
+--]]
+_r.readMetadataKeySeq = 'mr'
+
+
+
+--[[
+        *** Instructions:
+        
+        Windows: Ignore.
+        Mac: Increase if you're slow at the uptake when prompted to read metadata,
+             Decrease if you're waiting afterward.
+             
+        Note: Units are seconds and should NEVER be less than 3, nor greater than 30.
+        The default is 7.
+--]]
+_r.timeRequiredToReadMetadataOnMac = 7 -- also used for Windows boxes that use Mac-style metadata reading (manual).
+
+
+
+--[[
+        Dimensions of text area used to present (manually initiated) photo comparison results.
+        
+        I tweak these sometimes to get smaller size for demo purposes (e.g. posting on forums).
+        
+        For example:
+        
+        _r.justFilename = true -- do not show pathing info at top of dialog box.
+        _r.compareWidth = 70 -- defaults to approximately 70 characters wide.
+        _r.compareHeight = 53 -- defaults to 30 lines high.
+        _r.widthFactor = 1.4 -- really there are about 1.4 characters displayed per character of width, on average - depends on characters and font (on Windows).
+            -- not sure what best width-factor is on Mac, yet.
+            
+        for condensed presentation:
+        - width = 40 (short filename) to 50 (long filename).
+        - height = 20 (if few changes) to 30 (relatively extensive changes).
+--]]
+_r.justFilename = false
+_r.compareWidth = 70
+_r.compareHeight = disp.main.height >= 1200 and 50 or disp.main.height >= 1050 and 35 or disp.main.height >= 768 and 25 or 20
+_r.widthFactor = 1.4
+
+
+
+--[[
+        Dimensions of text area used to present (auto-check) photo comparison results.
+        
+        Tweak these if need be for smaller screens, or increase for bigger screens.
+        
+        For example:
+        
+        _r.autoWidth = 60 -- defaults to approximately 60 characters wide.
+        _r.autoHeight = 20 -- defaults to 20 lines high.
+--]]
+_r.autoWidth = 60
+_r.autoHeight = disp.main.height >= 1200 and 30 or disp.main.height >= 1050 and 20 or disp.main.height >= 768 and 15 or 12
+
+
+
+--[[
+        Auto-publish inclusion substrings.
+        
+        If any of the following substrings are present in the publish service name, it will be excluded
+        from auto-publishing.
+        
+        Example:
+        
+            autoPubIncl = { 'Auto', 'Test' }
+        
+                Photo will be auto-published on the following services (unless specifically excluded, see below):
+                
+                Auto Publish Web
+                Auto Publish Local
+                Test Publish
+        
+            autoPubIncl = nil
+            
+                Photo will be published on all services, unless excluded - see below.
+--]]
+_r.autoPubIncl = nil
+
+
+
+--[[
+        Auto-publish exclusion substrings.
+        
+        If any of the following substrings are present in the publish service name, it will be excluded
+        from auto-publishing.
+        
+        Example:
+        
+            autoPubExcl = { 'Publish-only Service', 'Test', 'Temp' }
+        
+                Photo will not be auto-published on the following services:
+                
+                Publish-only Service
+                Testing service
+                Temporary service
+            
+            autoPubExcl = {}
+            
+                Photo will not be specifically excluded from any service (same as nil).
+--]]
+_r.autoPubExcl = {}
+
+
+
+--[[
+        Set develop-settings change exclusions below, if desired. For example:
+        
+        devExcl['RetouchInfo'] = true -- Exclude 'RetouchInfo' from develop setting change consideration.
+--]] 
+local devSetExcl = {}
+
+
+
+--[[
+        Set raw metadata change exclusions below, if desired. For example:
+        
+        rawMetaExcl['dateTime'] = true -- Exclude 'dateTime' from raw metadata change consideration.
+        
+        @5/Nov/2011 - raw metadata supports '*' syntax to exclude all - there is really no reason to bother with raw-metadata, since formatted-metadata pretty-much has it covered.
+                      and its a bit faster when omitted.
+--]] 
+--local rawMetaExcl = {}
+--rawMetaExcl['dateTime'] = true
+--rawMetaExcl['dateTimeISO8601'] = true
+local rawMetaExcl = '*' 
+
+
+
+--[[
+        Set formatted metadata change exclusions below, if desired. For example:
+        
+        fmtMetaExcl['keywordTagsForExport'] = true -- exclude the keyword set that is confined to exported keywords.
+        fmtMetaExcl['keywordTags'] = true -- exclude the keyword set that includes both exported and non-exported keywords.
+        
+--]] 
+local fmtMetaExcl = {}
+fmtMetaExcl['keywordTagsForExport'] = true
+fmtMetaExcl['dateTime'] = true
+
+
+
+-- assign sub-tables to return table
+_r.devSetExcl = devSetExcl
+_r.rawMetaExcl = rawMetaExcl
+_r.fmtMetaExcl = fmtMetaExcl
+
+
+
+
+--   S N A P S H O T   &   M A R K   S T Y L E S   -   T A K E N   F R O M   S N A P   &   M A R K
+
+--[[
+        Instructions are identified by '*** Instructions' below.
+        
+        Links:
+        
+            - API Reference:            http://www.robcole.com/Lightroom/SDK 3.0/API Reference
+            - Lightroom SDK Guide:      http://www.robcole.com/Lightroom/SDK 3.0/Lightroom SDK Guide.pdf
+            - Lua reference manual:     http://www.lua.org/docs.html
+            - elare plugin framework:   https://www.assembla.com/spaces/lrdevplugin/
+            
+        Note: this configuration file executes in the elare plugin framework environment. What that means
+              is all global variables and functions defined in the framework are available.
+              
+              For examples, you can call:
+              
+                    - Debug.logn( ... ) for advanced debug log messages (if enabled).
+                    - Debug.lognpp( ... ) for advanced debug log messages, pretty-printed (if enabled).
+                    - Debug.pause( ... ) to break execution and present a debug form.
+                    - app:log( ... ) for normal user log message.
+                    - app:logVerbose( ... ) for verbose log message (if verbose logging enabled).
+                    - str:plural( ... ) to convert a noun to plural form
+                    etc...
+                    
+              Also, "most" Lightroom namespaces are available, for examples:
+              
+                    - LrPathUtils
+                    - LrFileUtils
+                    - LrStringUtils
+                    - LrDate
+--]]
+
+-- X
+
+--[[
+        Named styles.
+
+        *** Instructions: 
+
+            - General instructions - follow the ready-made examples, and note:
+
+                - locFormatString is documented in the Lightroom SDK Guide (pdf) on page 147, LOC function equivalence:
+
+                  LOC( "$$$/X={locFormatString}", ... )
+
+                - 'raw' items are defined in API Reference, LrPhoto, getRawMetadata ('raw' in this context refers to not formatted for Lr UI display).
+                - 'formatted' items are defined in API Reference, LrPhoto, getFormattedMetadata ( 'formatted' means as seen in Lr UI ).
+                - 'devsettings' items are defined in API Reference, LrPhoto, getDevelopSettins ( consider using devmeta instead for consolidated settings ).
+                - '{toolkitId}' refers to metadata accessible via any other plugin - substitute the actual toolkit-id for {toolkitId}.
+                    - some plugin toolkit ids:
+                        - ExifMeta: com.robcole.ExifMeta                          (or com.robcole.develop.ExifMeta for development version in lrdevplugin folder)
+                        - DevMeta: com.robcole.lightroom.metadata.DevMeta         (development version id is same)
+                    *** Important note: Be sure to use the LrToolkitIdentifier from Info.lua NOT the 'pluginId' field.
+                    - See plugin source code, metadata definition module (see LrMetadataProvider in Info.lua) for custom metadata supported by various plugins.
+                    - If plugin author does not provide source code, then you can ask author for the toolkit-id and a list of metadata item ids.
+                    
+            - styleName (text) as you want it to be seen in Style Chooser dropdown. Also, this is what's used in m{...}.lua modules to wire-up to the file menu.
+            - letMeHandleTime (true/false) set false to have a standard format timestamp appended, set true to omit the timestamp, or to provide alternate time formatting.
+            - historyPrefixForSnapshot (text) Prefix associated mark when snapshotting AND marking.
+            - historyPrefixForMark (text) Prefixes edit history mark when marking but not snapshotting.
+            - locFormatString (text) format: "^1 ... ^2 ..., etc", where ^1 and ^2 etc will be replaced by substitutions defined below.
+            - substitutions (table) defines data to be substituted in the loc-format-string. 2 possibilities:
+                - type, name: types are defined above, but note: you can omit the name for devsettings and have the whole set returned as a table.
+                - variables, transform: a table of variables and a transform function that will receive the variables as parameters.
+                  (format of variables is same as format for simple substitutions).
+                    - transform parameters:
+                        - namedParams (table) named parameters having the following elements:
+                            - photo (LrPhoto) lightroom photo object, see API Reference, LrPhoto section.
+                            - time (integer) Time as offset to a relatively arbitrary point in the past. Use LrDate.timeToUserFormat for custom formatting (also some canned formats you may like).
+                            - customText (text) custom text input from the keyboard in the chooser form, or passed in from m{...}.lua menu handling module.
+                        - ... these are the variables you requested capturable into a lua array by the {...} syntax, or can be given any names you want.
+                see below for examples
+--]]
+-- do not change this line
+local namedStyles = {}
+
+
+
+--[[
+        *** Instructions: customize to your hearts content, clone and change styleName to add more...
+--]]
+namedStyles[#namedStyles + 1] =
+{
+    styleName="Simplest",
+    letMeHandleTime=false,
+    historyPrefixForSnapshot = "snap: ",
+    historyPrefixForMark = "mark: ",
+    locFormatString="^1 crop=^2",
+    substitutions = {
+            { type='formatted', name='copyName' },
+            { type='formatted', name='croppedDimensions' },
+    }
+}
+
+
+
+--[[
+        *** Instructions: customize to your hearts content, clone and change styleName to add more...
+--]]
+namedStyles[#namedStyles + 1] =
+{
+    styleName="My Favorite",
+    letMeHandleTime=true,
+    historyPrefixForSnapshot = "snap: ",
+    historyPrefixForMark = "mark: ",
+    locFormatString="^1 ^2, crop=^3 ^4",
+    substitutions = {{
+        variables = {
+            { type='formatted', name='copyName' },
+            { type='formatted', name='croppedDimensions' },
+        },
+        transform = function( namedParams, copyName, cropDims )
+            local time = namedParams.time
+            local text = namedParams.customText
+            local crop = cropDims:gsub( " ", "" ) -- squeeze out the spaces.
+            local timeFmt = LrDate.timeToUserFormat( time, "%Y-%m-%d %I:%M:%S %p" )
+            local name
+            if copyName ~= nil and copyName ~= "" then
+                name = copyName
+            else
+                name = "Master"
+            end
+            return name, timeFmt, crop, text -- ^1, ^2, ^3, ^4
+        end,
+    },
+    -- { type='com.robcole.lightroom.metadata.DevMeta', name='CropWidth' },
+    -- { type='com.robcole.lightroom.metadata.DevMeta', name='CropHeight' },
+    -- { type='formatted', name='croppedDimensions' }, -- ^3
+    -- { type='com.robcole.develop.ExifMeta', name='lastUpdate' },
+    -- { type='com.robcole.lightroom.metadata.DevMeta', name='pixelCount' },
+    }
+}
+
+
+
+--[[
+        RC Standard formatting for first (lock) line of snap/mark.
+--]]
+local function rcLocked( time, copyName, customText )
+    local timeFmt = LrDate.timeToUserFormat( time, "%Y-%m-%d %H:%M:%S" )
+    local name
+    if str:is( copyName ) then
+        name = copyName
+    else
+        name = "Master"
+    end
+    if str:is( customText ) then
+        return str:fmt( "^1 ^2 Locked (^3)", name, timeFmt, customText )
+    else
+        return str:fmt( "^1 ^2 Locked", name, timeFmt )
+    end
+end
+    
+
+
+--[[
+        Intended to be used with extras, but doesn't have to be :-)
+
+        *** Instructions: Comment out (or delete), or customize and change styleName, if desired.
+--]]
+namedStyles[#namedStyles + 1] =
+{
+    styleName="RC Finished", -- only difference between this and rc-complete is absence of extra marks.
+    letMeHandleTime=true,
+    historyPrefixForSnapshot = "snap: ",
+    historyPrefixForMark = "mark: ",
+    locFormatString="^1",
+    substitutions = {{
+        variables = {
+            { type='formatted', name='copyName' },
+        },
+        transform=function( namedParams, copyName )
+            return rcLocked( namedParams.time, copyName, namedParams.customText )
+        end,
+        },
+    },
+}
+
+
+
+--[[
+        Intended to be used with extras, but doesn't have to be :-)
+
+        *** Instructions: Comment out (or delete), or customize and change styleName, if desired.
+--]]
+namedStyles[#namedStyles + 1] =
+{
+    styleName="RC Finished, Summarized",
+    letMeHandleTime=true, -- I'm liking time immediately after copy name, so everything is chronological per copy.
+    historyPrefixForSnapshot = "snap: ",
+    historyPrefixForMark = "mark: ",
+    locFormatString="^1",
+    substitutions = {{
+        variables = {
+            { type='formatted', name='copyName' },
+        },
+        transform=function( namedParams, copyName )
+            return rcLocked( namedParams.time, copyName, namedParams.customText )
+        end,
+        },
+    },
+    extraMarks = { "RC Profile", "RC Details" },
+}
+
+
+
+--[[
+        Note: this builds a mark with extra information, including lens corrections, and more.
+        
+        Intended to be used in conjunction with RC Basic, but not required.
+
+        *** Instructions: Delete, or customize and change styleName, if desired.
+--]]
+namedStyles[#namedStyles + 1] =
+{
+    styleName="RC Profile",
+    letMeHandleTime=true,
+    historyPrefixForSnapshot = "snap: ", -- intended for extra marking only, but if snap taken with it...
+    historyPrefixForMark = "profile: ",
+    locFormatString="^1",
+    substitutions = {{
+        variables = {
+            { type='devsettings' }, -- get all dev settings
+        },
+        transform=function( namedParams, dev )
+            local buf = {}
+            assert( dev ~= nil and type( dev ) == 'table', "bad dev settings" )
+            local photo = namedParams.photo
+            
+            -- camera profile
+            local profile
+            local cp = dev.CameraProfile -- camera profile
+            if cp then
+                local model = photo:getFormattedMetadata( "cameraModel" )
+                if model then
+                    if model == "NIKON D300" then
+                        local x,y = cp:find( "Nikon D300 " )
+                        if x then
+                            profile = cp:sub( y + 1 )
+                        end
+                    elseif model:find( "G12" ) then
+                        local x,y = cp:find( "G12 " )
+                        if x then
+                            profile = cp:sub( y + 1 )
+                        end
+                    -- *** Instructions: add clauses for your model numbers here if you want them stripped.
+                    end
+                end
+            end
+            if not profile then
+                profile = cp
+            end
+            buf[#buf + 1] = profile
+
+            -- profile color adjustments
+            local a = true
+            repeat
+                if dev.ShadowTint ~= 0 then break end
+                if dev.RedHue ~= 0 then break end
+                if dev.RedSaturation ~= 0 then break end
+                if dev.GreenHue ~= 0 then break end
+                if dev.GreenSaturation ~= 0 then break end
+                if dev.BlueHue ~= 0 then break end
+                if dev.BlueSaturation ~= 0 then break end
+                a = false
+            until true
+            if a then
+                buf[#buf] = "*" .. buf[#buf] -- camera profile has been adjusted.
+            end            
+
+            -- roll it up,            
+            local res = table.concat( buf, ";" )
+            -- and ship it out.
+            return res
+        end,
+        },
+    }
+}
+        
+
+
+--[[
+        Note: this builds a mark with extra information, including lens corrections, and more.
+
+        Intended to be used in conjunction with RC Basic, but not required.
+
+        *** Instructions: Delete, or customize and change styleName, if desired.
+--]]
+namedStyles[#namedStyles + 1] =
+{
+    styleName="RC Details",
+    letMeHandleTime=true,
+    historyPrefixForSnapshot = "snap: ", -- intended for extra marking only, but if snap taken with it...
+    historyPrefixForMark = "details: ",
+    locFormatString="^1",
+    substitutions = {{
+        variables = {
+            { type='devsettings' }, -- get all dev settings
+            { type='formatted', name='croppedDimensions' },
+        },
+        transform=function( namedParams, ... )
+            local p = {...} -- parameters as array.
+            local buf = {}
+            
+            local dev = p[1] -- first variable is dev settings
+            assert( dev ~= nil and type( dev ) == 'table', "bad dev settings" )
+            
+            local function isN( n )
+                return n ~= nil and n > 0
+            end
+
+            local function pv()
+                if dev.ProcessVersion == "6.6" or dev.ProcessVersion == "6.7" then -- PV2012.
+                    if isN( dev.IncrementalTemperature ) or isN( dev.IncrementalTint ) or isN( dev.Temperature ) or isN( dev.Tint )
+                    or dev.Exposure2012 > 0 or dev.Contrast2012 > 0 or dev.Highlights2012 > 0 or dev.Shadows2012 > 0 or dev.Whites2012 > 0 or dev.Blacks2012 > 0
+                    or dev.Clarity2012 > 0 or dev.Vibrance > 0 or dev.Saturation > 0 then
+                        buf[#buf + 1] = "PV12"
+                    else
+                        -- no pv12 basics.
+                    end
+                else -- legacy
+                    if isN( dev.IncrementalTemperature ) or isN( dev.IncrementalTint ) or isN( dev.Temperature ) or isN( dev.Tint )
+                    or dev.Exposure > 0 or dev.Contrast > 0 or dev.HighlightRecovery > 0 or dev.FillLight > 0 or dev.Brightness > 0 or dev.Blacks > 0
+                    or dev.Clarity > 0 or dev.Vibrance > 0 or dev.Saturation > 0  then
+                        buf[#buf + 1] = "PVL"
+                    else
+                        -- no legacy basics.
+                    end
+                end
+            end
+            pcall( pv ) -- an error means there were no basics.
+            
+            local crop = p[2]
+
+            -- Croppage
+            if ( dev.CropLeft == 0) and ( dev.CropRight <= 1) and ( dev.CropTop == 0) and ( dev.CropBottom <= 1) then -- not sure why, but I get right & bottom =1 for no crop - strange!
+                -- I hope left and top are always 0 for no-crop.
+            else
+                if crop then
+                    buf[#buf + 1] = crop:gsub( " ", "" ) -- squeezed version of crop dimensions.
+                end
+            end
+            
+            -- White balance
+            if dev.WhiteBalance and dev.WhiteBalance:find( 'Custom' ) then
+                buf[#buf + 1] = 'WB'
+            end
+            
+            -- Split-toning
+            local a = true
+            repeat
+                if dev.SplitToningBalance ~= 0 then break end
+                if dev.SplitToningHighlightHue ~= 0 then break end
+                if dev.SplitToningHighlightSaturation ~= 0 then break end
+                if dev.SplitToningShadowHue ~= 0 then break end
+                if dev.SplitToningShadowSaturation ~= 0 then break end
+                a = false
+            until true
+            if a then
+                if dev.EnableSplitToning then
+                    buf[#buf + 1] = 'ST'
+                else
+                    app:logVerbose( "Split-toning adjustments are present, but are disabled." )
+                end
+            end
+
+            -- BW/HSL
+            if dev.ConvertToGrayscale then -- BW
+                if dev.GrayMixerRed ~= 0 or dev.GrayMixerOrange ~= 0 or dev.GrayMixerYellow ~= 0 or dev.GrayMixerGreen ~= 0 or dev.GrayMixerAqua ~= 0 or dev.GrayMixerBlue ~= 0 or dev.GrayMixerPurple ~= 0 or dev.GrayMixerMagenta ~= 0 then
+                    if dev.EnableGrayscaleMix then -- bw enabled
+                        buf[#buf + 1] = "BW"
+                    else
+                        app:logVerbose( "*** B & W adjustments are defined but disabled." )
+                    end
+                else
+                    -- no mods
+                end
+            else -- color
+                if dev.HueAdjustmentRed ~= 0 or dev.HueAdjustmentOrange ~= 0 or dev.HueAdjustmentYellow ~= 0 or dev.HueAdjustmentGreen ~= 0 or dev.HueAdjustmentAqua ~= 0 or dev.HueAdjustmentBlue ~= 0 or dev.HueAdjustmentPurple ~= 0 or dev.HueAdjustmentMagenta ~= 0 or
+                   dev.SaturationAdjustmentRed ~= 0 or dev.SaturationAdjustmentOrange ~= 0 or dev.SaturationAdjustmentYellow ~= 0 or dev.SaturationAdjustmentGreen ~= 0 or dev.SaturationAdjustmentAqua ~= 0 or dev.SaturationAdjustmentBlue ~= 0 or dev.SaturationAdjustmentPurple ~= 0 or dev.SaturationAdjustmentMagenta ~= 0 or
+                   dev.LuminanceAdjustmentRed ~= 0 or dev.LuminanceAdjustmentOrange ~= 0 or dev.LuminanceAdjustmentYellow ~= 0 or dev.LuminanceAdjustmentGreen ~= 0 or dev.LuminanceAdjustmentAqua ~= 0 or dev.LuminanceAdjustmentBlue ~= 0 or dev.LuminanceAdjustmentPurple ~= 0 or dev.LuminanceAdjustmentMagenta ~= 0 then
+                    if dev.EnableColorAdjustments then -- hsl enabled
+                        buf[#buf + 1] = "HSL"
+                    else
+                        app:logVerbose( "*** Color adjustments are defined but disabled." )
+                    end
+                else
+                    -- no mods
+                end
+            end
+
+            -- Tone curve(s)
+            if dev.ParametricShadows ~= 0 or dev.ParametricDarks ~= 0 or dev.ParametricLights ~= 0 or dev.ParametricHighlights ~= 0 then
+                -- Note: There is no Enable setting returned for the tone curve. ###3 - recheck next SDK update, say 2012.
+                buf[#buf + 1] = "T" -- original tone curve changes.
+            end
+            -- point curve
+            local t = dev.ToneCurve
+            if t ~= nil and ( type( t ) == 'table' ) then
+                -- Debug.lognpp( "Tone curve", t )
+                if t[1] ~= nil and t[2] ~= nil then -- at least one point has to be there in order to be considered a "valid" point curve.
+                    if dev.ToneCurveName == 'Custom' then
+                        buf[#buf + 1] = "P" -- point curve mods.
+                    end
+                else
+                    app:logVerbose( "Point curve either not present, or invalid." ) -- photo?
+                end
+            else
+                -- we're probably on the wrong parameter, but then again...
+                app:logVerbose( "No point curve?" )
+            end
+            
+            --   L E N S   C O R R E C T I O N S
+            
+            local plc = {}
+            local mlc = {}
+            
+            -- profile distortion
+            if dev.LensProfileDistortionScale ~= 0 then
+                plc[#plc + 1] = "D"
+            end
+            -- profile vignette
+            if dev.LensProfileVignettingScale ~= 0 then
+                plc[#plc + 1] = "V"
+            end
+            -- profile CA            
+            if dev.LensProfileChromaticAberrationScale ~= 0 then
+                plc[#plc + 1] = "CA"
+            end
+            
+            -- manual distortion
+            if dev.LensManualDistortionAmount ~= 0 then
+                mlc[#mlc + 1] = "D"
+            end
+            -- manual vignetting
+            if dev.VignetteAmount ~= 0 then
+                mlc[#mlc + 1] = "V"
+            end
+            -- manual CA
+            if dev.ChromaticAberrationR ~= 0 or dev.ChromaticAberrationB ~= 0 then
+                mlc[#mlc + 1] = "CA"
+            end
+            -- perspective (manual)
+            if dev.PerspectiveVertical ~= nil then
+                if dev.PerspectiveVertical ~= 0 or dev.PerspectiveHorizontal ~= 0 or dev.PerspectiveRotate ~= 0 or dev.PerspectiveScale ~= 100 then
+                    mlc[#mlc + 1] = "P"
+                end
+            end
+            
+            local function isThere( _in, it )
+                for i, v in ipairs( _in ) do
+                    if v == it then
+                        return true
+                    end
+                end
+                return false
+            end
+            
+            if dev.EnableLensCorrections then
+                if #plc > 0 then
+                    local lc = {}
+                    if (dev.LensProfileEnable ~= nil) and (dev.LensProfileEnable == 1) then            -- not true/false
+                        if #mlc > 0 then
+                            for i, v in ipairs( mlc ) do
+                                if isThere( plc, v ) then
+                                    lc[#lc + 1] = "*" .. v
+                                else
+                                    lc[#lc + 1] = v
+                                end                        
+                            end
+                            buf[#buf + 1] = "LensC:" .. table.concat( lc, "," ) -- combined
+                        else
+                            buf[#buf + 1] = "LensP:" .. table.concat( plc, "," ) -- profile only
+                        end
+                    else
+                        app:logVerbose( "Lens profile corrections are defined, but disabled." )
+                        if #mlc > 0 then
+                            buf[#buf + 1] = "LensM:" .. table.concat( mlc, "," ) -- manual only
+                        end
+                    end
+                elseif #mlc > 0 then
+                    buf[#buf + 1] = "LensM:" .. table.concat( mlc, "," ) -- manual only
+                end
+            else
+                if #plc > 0 or #mlc > 0 then -- lens corrections
+                    app:logVerbose( "Lens corrections are defined but disabled." )
+                end
+            end
+        
+            -- post-crop vignette
+            if dev.PostCropVignetteAmount ~= 0 then -- this may be nil if photo originated in Lr1? Or catalog upgrade assigns 0?
+                if not dev.EnableEffects then
+                    app:logVerbose( "Post-crop vignette is defined but effects are disabled." )
+                else
+                    buf[#buf + 1] = "PCV"        
+                end
+            end
+               
+            -- grain
+            if dev.GrainAmount ~= nil then 
+                if dev.GrainAmount ~= 0 then
+                    if not dev.EnableEffects then
+                        app:logVerbose( "Grain is defined but effects are disabled." )
+                    else
+                        buf[#buf + 1] = "Gn" 
+                    end
+                end
+            end
+            
+            -- DSR    
+            if not tab:isEmpty( dev.RetouchInfo) then
+                if dev.EnableRetouch then
+                    buf[#buf + 1] = "DSR" -- dust spot removal
+                else
+                    app:logVerbose( "DSR/retouching is present, but disabled." )
+                end
+            end
+            
+            -- gradients
+            if not tab:isEmpty( dev.GradientBasedCorrections) then
+                if dev.EnableGradientBasedCorrections then
+                    buf[#buf + 1] = "Gd" -- gradients
+                else
+                    app:logVerbose( "Gradients are present, but disabled." )
+                end
+            end
+            
+            -- brushes
+            if not tab:isEmpty( dev.PaintBasedCorrections) then
+                if dev.EnablePaintBasedCorrections then
+                    buf[#buf + 1] = "Pt" -- paint
+                else
+                    app:logVerbose( "Paint brushing is present, but disabled." )
+                end
+            end
+            
+            -- redeye
+            if not tab:isEmpty( dev.RedEyeInfo) then
+                if dev.EnableRedEye then
+                    buf[#buf + 1] = "RdE" -- Red Eye
+                else
+                    app:logVerbose( "Red-eye corrections are present, but disabled." )
+                end
+            end
+    
+            -- roll it up,
+            local res
+            if #buf > 0 then
+                res = table.concat( buf, ";" )
+            else
+                res = "no adjustments"
+            end
+            -- and ship it out.
+            return res
+        end,
+        },
+    }
+}
+
+
+
+-- do not change this line
+_r.namedStyles = namedStyles
+
+
+
+-- do not change this line
+return _r
